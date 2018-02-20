@@ -1,10 +1,4 @@
-/*
-  Ultrasonic Sensor HC-SR04 and Arduino Tutorial
-
-  Crated by Dejan Nedelkovski,
-  www.HowToMechatronics.com
-
-*/
+#include <MIDI.h>
 
 // defines pins numbers
 const int trigPin1 = 7;
@@ -16,21 +10,27 @@ const int echoPin2 = 4;
 unsigned long lasttrig1 = millis();
 unsigned long lasttrig2 = millis();
 unsigned long triggap = 1000;
-
-bool trig1 = 0;
-bool trig2 = 0;
+unsigned long range = 1500;
 
 long duration1;
 int distance1;
 long duration2;
 int distance2;
 
+bool DEBUG = 0;
+
+MIDI_CREATE_DEFAULT_INSTANCE();
 void setup() {
   pinMode(trigPin1, OUTPUT); // Sets the trigPin1 as an Output
   pinMode(echoPin1, INPUT); // Sets the echoPin1 as an Input
   pinMode(trigPin2, OUTPUT);
   pinMode(echoPin2, INPUT);
-  Serial.begin(9600); // Starts the serial communication
+  MIDI.begin();
+  if (DEBUG) {
+    Serial.begin(115200);  // needed for hairless midi
+  }
+    delay(1000);
+  MIDIsoftreset();  // Midi Reset
 }
 
 void loop() {
@@ -58,18 +58,21 @@ void loop() {
   distance1 = duration1 * 0.034 / 2;
   distance2 = duration2 * 0.034 / 2;
 
-  if (duration1 < 5000 && (millis() - lasttrig1 > triggap)) {
-   trig1 = 1;
+  if (duration1 < range && (millis() - lasttrig1 > triggap)) {
+    MIDI.sendNoteOn(60, 100, 6);
     lasttrig1 = millis();
   }
-  if (duration2 < 5000 && (millis() - lasttrig2 > triggap)) {
-trig2 = 1;
+  if (duration2 < range && (millis() - lasttrig2 > triggap)) {
+    MIDI.sendNoteOn(61, 100, 6);
     lasttrig2 = millis();
   }
-  // Prints the distance1 on the Serial Monitor
-  Serial.print(trig1);
-  Serial.print(" ");
-  Serial.println(trig2);
-  trig1 = 0;
-  trig2 = 0;
+
+}
+
+void MIDIsoftreset()  // switch off ALL notes on channel 1 to 16
+{
+  for (int channel = 0; channel < 16; channel++)
+  {
+    MIDI.sendControlChange(123, 0, channel);
+  }
 }
