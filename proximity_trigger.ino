@@ -1,72 +1,66 @@
 #include <MIDI.h>
 
+const int sensors = 2;
+
 // defines pins numbers
-const int trigPin1 = 7;
-const int echoPin1 = 6;
-const int trigPin2 = 5;
-const int echoPin2 = 4;
+const int trigPin[sensors] = {7,5};
+const int echoPin[sensors] = {6,4};
+
+// notes
+const int notes[sensors] = {52,59};
+const int channel = 5;
+
 // defines variables
 
-unsigned long lasttrig1 = millis();
-unsigned long lasttrig2 = millis();
+unsigned long lasttrig[sensors];
+
 unsigned long triggap = 1000;
 unsigned long range = 1500;
 
-long duration1;
-int distance1;
-long duration2;
-int distance2;
+long duration[sensors];
+int distance[sensors];
 
 bool DEBUG = 0;
 
 MIDI_CREATE_DEFAULT_INSTANCE();
 void setup() {
-  pinMode(trigPin1, OUTPUT); // Sets the trigPin1 as an Output
-  pinMode(echoPin1, INPUT); // Sets the echoPin1 as an Input
-  pinMode(trigPin2, OUTPUT);
-  pinMode(echoPin2, INPUT);
+  for (int i = 0; i < sensors; i++) {
+    pinMode(trigPin[i], OUTPUT); // Sets the trigPin1 as an Output
+    pinMode(echoPin[i], INPUT); // Sets the echoPin1 as an Input
+  }
   MIDI.begin();
   if (DEBUG) {
     Serial.begin(115200);  // needed for hairless midi
   }
-    delay(1000);
-  MIDIsoftreset();  // Midi Reset
+  for (int i = 0; i < sensors; i++) {
+    lasttrig[i] = millis();
+  }
+  delay(1000);
+  // MIDIsoftreset();  // Midi Reset
 }
 
 void loop() {
-  // Clears the trigPin1
-  digitalWrite(trigPin1, LOW);
-  delayMicroseconds(2);
+  for (int i=0; i < sensors; i++) {
+    // Clears the trigPin
+    digitalWrite(trigPin[i], LOW);
+    delayMicroseconds(2);
 
-  // Sets the trigPin1 on HIGH state for 10 micro seconds
-  digitalWrite(trigPin1, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin1, LOW);
+    // Sets the trigPin on HIGH state for 10 micro seconds
+    digitalWrite(trigPin[i], HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin[i], LOW);
 
-  // Reads the echoPin1, returns the sound wave travel time in microseconds
-  duration1 = pulseIn(echoPin1, HIGH);
+    // Reads the echoPin, returns the sound wave travel time in microseconds
+    duration[i] = pulseIn(echoPin[i], HIGH);
 
-  // Repeat for sensor 2
-  digitalWrite(trigPin2, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPin2, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin2, LOW);
-  duration2 = pulseIn(echoPin2, HIGH);
+    // Calculating the distance
+    distance[i] = duration[i] * 0.034 / 2;
 
-  // Calculating the distance1
-  distance1 = duration1 * 0.034 / 2;
-  distance2 = duration2 * 0.034 / 2;
-
-  if (duration1 < range && (millis() - lasttrig1 > triggap)) {
-    MIDI.sendNoteOn(60, 100, 6);
-    lasttrig1 = millis();
+    if (duration[i] < range && (millis() - lasttrig[i] > triggap)) {
+      MIDI.sendNoteOn(notes[i], 100, channel);
+      lasttrig[i] = millis();
+    }
   }
-  if (duration2 < range && (millis() - lasttrig2 > triggap)) {
-    MIDI.sendNoteOn(61, 100, 6);
-    lasttrig2 = millis();
-  }
-
 }
 
 void MIDIsoftreset()  // switch off ALL notes on channel 1 to 16
