@@ -3,11 +3,12 @@
 const int sensors = 2;
 
 // defines pins numbers
-const int trigPin[sensors] = {7,5};
-const int echoPin[sensors] = {6,4};
+const int trigPin[sensors] = {7, 5};
+const int echoPin[sensors] = {6, 4};
+bool playing[sensors];
 
 // notes
-const int notes[sensors] = {52,59};
+const int notes[sensors] = {52, 59};
 const int channel = 5;
 
 // defines variables
@@ -16,6 +17,7 @@ unsigned long lasttrig[sensors];
 
 unsigned long triggap = 1000;
 unsigned long range = 1500;
+unsigned long maxduration = 12000;
 
 long duration[sensors];
 int distance[sensors];
@@ -27,6 +29,7 @@ void setup() {
   for (int i = 0; i < sensors; i++) {
     pinMode(trigPin[i], OUTPUT); // Sets the trigPin1 as an Output
     pinMode(echoPin[i], INPUT); // Sets the echoPin1 as an Input
+    playing[i] = false;
   }
   MIDI.begin();
   if (DEBUG) {
@@ -40,7 +43,7 @@ void setup() {
 }
 
 void loop() {
-  for (int i=0; i < sensors; i++) {
+  for (int i = 0; i < sensors; i++) {
     // Clears the trigPin
     digitalWrite(trigPin[i], LOW);
     delayMicroseconds(2);
@@ -52,13 +55,28 @@ void loop() {
 
     // Reads the echoPin, returns the sound wave travel time in microseconds
     duration[i] = pulseIn(echoPin[i], HIGH);
-
+    if (duration[i] > maxduration) {
+      duration[i] = maxduration;
+    }
     // Calculating the distance
     distance[i] = duration[i] * 0.034 / 2;
 
-    if (duration[i] < range && (millis() - lasttrig[i] > triggap)) {
-      MIDI.sendNoteOn(notes[i], 100, channel);
+
+    if (DEBUG && (millis() - lasttrig[i] > 10)) {
+      Serial.print(duration[0]);
+      Serial.print("\t");
+      Serial.println(duration[1]);
       lasttrig[i] = millis();
+    } else {
+      if ((duration[i] > 100) && (duration[i] < range) && (playing[i] == false) && (millis() - lasttrig[i] > triggap)) {
+        MIDI.sendNoteOn(notes[i], 100, channel);
+        playing[i] = true;
+        lasttrig[i] = millis();
+      }
+      if ((duration[i] > range)) {
+        MIDI.sendNoteOff(notes[i],100,channel);
+        playing[i] = false;
+      }
     }
   }
 }
