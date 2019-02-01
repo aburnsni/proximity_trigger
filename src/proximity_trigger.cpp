@@ -1,14 +1,15 @@
+#include <Arduino.h>
 #include <MIDI.h>
 
-const int sensors = 2;
+const int sensors = 4;
 
 // defines pins numbers
-const int trigPin[sensors] = {7, 5};
-const int echoPin[sensors] = {6, 4};
+const int trigPin[sensors] = {2, 4, 6, 8};
+const int echoPin[sensors] = {3, 5, 7, 9};
 bool playing[sensors];
 
 // notes
-const int notes[sensors] = {52, 59};
+const int notes[sensors] = {52, 54, 56, 59};
 const int channel = 5;
 
 // defines variables
@@ -19,12 +20,15 @@ unsigned long triggap = 1000;
 unsigned long range = 1500;
 unsigned long maxduration = 12000;
 
-long duration[sensors];
+unsigned long duration[sensors];
 int distance[sensors];
 
 bool DEBUG = 0;
 
 MIDI_CREATE_DEFAULT_INSTANCE();
+
+// void MIDIsoftreset();
+
 void setup() {
   for (int i = 0; i < sensors; i++) {
     pinMode(trigPin[i], OUTPUT); // Sets the trigPin1 as an Output
@@ -81,10 +85,10 @@ void loop() {
   }
 }
 
-void MIDIsoftreset()  // switch off ALL notes on channel 1 to 16
-{
-  for (int channel = 0; channel < 16; channel++)
-  {
-    MIDI.sendControlChange(123, 0, channel);
-  }
-}
+// void MIDIsoftreset()  // switch off ALL notes on channel 1 to 16
+// {
+//   for (int channel = 0; channel < 16; channel++)
+//   {
+//     MIDI.sendControlChange(123, 0, channel);
+//   }
+// }
