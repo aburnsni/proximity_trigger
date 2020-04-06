@@ -58,10 +58,10 @@ void loop() {
     digitalWrite(trigPin[i], LOW);
 
     // Reads the echoPin, returns the sound wave travel time in microseconds
-    duration[i] = pulseIn(echoPin[i], HIGH);
-    if (duration[i] > maxduration) {
-      duration[i] = maxduration;
-    }
+    duration[i] = pulseIn(echoPin[i], HIGH, maxduration);
+    // if (duration[i] > maxduration) {
+    //   duration[i] = maxduration;
+    // }
     // Calculating the distance
     distance[i] = duration[i] * 0.034 / 2;
 
