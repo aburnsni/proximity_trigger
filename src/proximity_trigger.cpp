@@ -69,7 +69,11 @@ void loop() {
     if (DEBUG && (millis() - lasttrig[i] > 10)) {
       Serial.print(duration[0]);
       Serial.print("\t");
-      Serial.println(duration[1]);
+      Serial.print(duration[1]);
+      Serial.print("\t");
+      Serial.print(duration[2]);
+      Serial.print("\t");
+      Serial.println(duration[3]);
       lasttrig[i] = millis();
     } else {
       if ((duration[i] > 100) && (duration[i] < range) && (playing[i] == false) && (millis() - lasttrig[i] > triggap)) {
